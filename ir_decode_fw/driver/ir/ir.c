@@ -12,13 +12,14 @@
 #include "stm32f0xx_rcc.h"
 #include "stm32f0xx_misc.h"
 #include <stdbool.h>
+#include "../../source/ir_decode.h"
+#include "../led/led.h"
 /******************************************************************************/
 /**!                            LOCAL TYPEDEF                                 */
 /******************************************************************************/
 typedef struct
 {
     uint16_t start_width;
-    uint32_t start_to_start_interval;
     ir_protocol_t protocol;
 }ir_protocols_map_t;
 /******************************************************************************/
@@ -33,10 +34,16 @@ typedef struct
 #define IR_CAP_TIM_CH           TIM_Channel_4
 #define IR_CAP_IRQ_SRC          TIM_IT_CC4
 
-#define IR_START_PRESS              1
-#define IR_CONTINUE_PRESS           0
 #define IR_SIGNAL_FREQ              1000000UL
 #define IR_SIGNAL_TOLERANCE_US      100UL
+
+
+#define IR_FRAME_EDGES_NUMER_SONY_SIRC_PROTOCOL      26
+
+#define IR_SONY_START_TO_START_INTERVAL_US           45000UL
+
+#define IR_FIRST_EDGE  1
+#define IR_SECOND_EDGE 2
 
 #define IR_START_BIT_ON_TIME_US_RC5                     ( 889UL  )
 #define IR_START_BIT_ON_TIME_US_RC6                     ( 2666UL )
@@ -49,31 +56,6 @@ typedef struct
 #define IR_START_BIT_ON_TIME_US_PANASONIC_PROTOCOL      ( 1728UL )
 #define IR_START_BIT_ON_TIME_US_RCA_PROTOCOL            ( 4000UL )
 #define IR_START_BIT_ON_TIME_US_NOKIA_NRC17_PROTOCOL    ( 500UL  )
-
-#define IR_FRAME_EDGES_NUMER_RC5                     ( 0 )
-#define IR_FRAME_EDGES_NUMER_RC6                     ( 0 )
-#define IR_FRAME_EDGES_NUMER_RC_MM                   ( 0 )
-#define IR_FRAME_EDGES_NUMER_SONY_SIRC_PROTOCOL      ( 26 )
-#define IR_FRAME_EDGES_NUMER_JVC_PROTOCOL            ( 0 )
-#define IR_FRAME_EDGES_NUMER_NEC_PROTOCOL            ( 0 )
-#define IR_FRAME_EDGES_NUMER_SHARP_PROTOCOL          ( 0 )
-#define IR_FRAME_EDGES_NUMER_MITSUBISHI_PROTOCOL     ( 0 )
-#define IR_FRAME_EDGES_NUMER_PANASONIC_PROTOCOL      ( 0 )
-#define IR_FRAME_EDGES_NUMER_RCA_PROTOCOL            ( 0 )
-#define IR_FRAME_EDGES_NUMER_NOKIA_NRC17_PROTOCOL    ( 0 )
-
-#define IR_SONY_START_TO_START_INTERVAL_US           ( 45000UL)
-#define IR_RC5_START_TO_START_INTERVAL_US            ( 45000UL)
-#define IR_RC6_START_TO_START_INTERVAL_US            ( 45000UL)
-#define IR_JVC_START_TO_START_INTERVAL_US            ( 45000UL)
-#define IR_NEC_START_TO_START_INTERVAL_US            ( 45000UL)
-#define IR_SHARP_START_TO_START_INTERVAL_US          ( 45000UL)
-#define IR_MITSUBISHI_START_TO_START_INTERVAL_US     ( 45000UL)
-#define IR_PANASONIC_START_TO_START_INTERVAL_US      ( 45000UL)
-#define IR_NRC17_START_TO_START_INTERVAL_US          ( 45000UL)
-
-#define IR_FIRST_EDGE  1
-#define IR_SECOND_EDGE 2
 /******************************************************************************/
 /**!                         EXPORTED VARIABLES                               */
 /******************************************************************************/
@@ -84,24 +66,32 @@ typedef struct
 uint32_t IR_CarryFreq = IR_SIGNAL_FREQ;
 const ir_protocols_map_t IR_Protocol_map[IR_PROTOCOL_NUM] = 
 {
-    {IR_START_BIT_ON_TIME_US_RC5                 ,IR_RC5_START_TO_START_INTERVAL_US,       IR_PROTOCOL_RC5         },
-    {IR_START_BIT_ON_TIME_US_RC6                 ,IR_RC6_START_TO_START_INTERVAL_US,       IR_PROTOCOL_RC6         },
-    {IR_START_BIT_ON_TIME_US_SONY_SIRC_PROTOCOL  ,IR_SONY_START_TO_START_INTERVAL_US,      IR_PROTOCOL_SONY_SIRC   },
-    {IR_START_BIT_ON_TIME_US_JVC_PROTOCOL        ,IR_JVC_START_TO_START_INTERVAL_US,       IR_PROTOCOL_JVC         },
-    {IR_START_BIT_ON_TIME_US_NEC_PROTOCOL        ,IR_NEC_START_TO_START_INTERVAL_US,       IR_PROTOCOL_NEC         },
-    {IR_START_BIT_ON_TIME_US_SHARP_PROTOCOL      ,IR_SHARP_START_TO_START_INTERVAL_US,     IR_PROTOCOL_SHARP       },
-    {IR_START_BIT_ON_TIME_US_PANASONIC_PROTOCOL  ,IR_PANASONIC_START_TO_START_INTERVAL_US, IR_PROTOCOL_PANASONIC   },
+	{IR_START_BIT_ON_TIME_US_RC5                 , IR_PROTOCOL_RC5         },
+    {IR_START_BIT_ON_TIME_US_RC6                 , IR_PROTOCOL_RC6         },
+    {IR_START_BIT_ON_TIME_US_RC_MM               , IR_PROTOCOL_RC_MM       },
+    {IR_START_BIT_ON_TIME_US_SONY_SIRC_PROTOCOL  , IR_PROTOCOL_SONY_SIRC   },
+    {IR_START_BIT_ON_TIME_US_JVC_PROTOCOL        , IR_PROTOCOL_JVC         },
+    {IR_START_BIT_ON_TIME_US_NEC_PROTOCOL        , IR_PROTOCOL_NEC         },
+    {IR_START_BIT_ON_TIME_US_SHARP_PROTOCOL      , IR_PROTOCOL_SHARP       },
+    {IR_START_BIT_ON_TIME_US_MITSUBISHI_PROTOCOL , IR_PROTOCOL_MITSUBISHI  },
+    {IR_START_BIT_ON_TIME_US_PANASONIC_PROTOCOL  , IR_PROTOCOL_PANASONIC   },
+    {IR_START_BIT_ON_TIME_US_RCA_PROTOCOL        , IR_PROTOCOL_RCA         },
+    {IR_START_BIT_ON_TIME_US_NOKIA_NRC17_PROTOCOL, IR_PROTOCOL_NOKIA_NRC17 }
 };
+
+
+ir_callback_t ir_callback;
+static ir_protocol_t IR_Protocol  = IR_PROTOCOL_RC5;
 /******************************************************************************/
 /**!                    LOCAL FUNCTIONS PROTOTYPES                            */
 /******************************************************************************/
-
+void IR_EventHandle (ir_event_t xEvent, uint16_t xInterval, \
+                      uint8_t xEdgesCount, ir_protocol_t xIrProtocol);
 /******************************************************************************/
 /**!                        EXPORTED FUNCTIONS                                */
 /******************************************************************************/
 void IR_Init (void)
 {
-	
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
 	GPIO_InitTypeDef GPIO_InitStruct;
@@ -144,24 +134,25 @@ void IR_Init (void)
     NVIC_InitStruct.NVIC_IRQChannel = TIM3_IRQn;
     NVIC_InitStruct.NVIC_IRQChannelPriority = 0;
     NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStruct);	
+    NVIC_Init(&NVIC_InitStruct);
+	ir_callback = IR_EventHandle;
 }
 /******************************************************************************/
 /**!                          LOCAL FUNCTIONS                                 */
 /******************************************************************************/
 void TIM3_IRQHandler (void)
 {
-    static ir_protocol_t IR_Protocol = IR_PROTOCOL_SONY_SIRC; //set sony as default protocol
     static uint8_t  EdgesCount = 0;
     static uint32_t IR_TimelineUS = 0;
     static bool IR_RepeatedFrame = false;
+	static int temp = 0;
     uint32_t PulseLength = 0;
     ir_event_t Event = IR_EVENT_ERROR_RECEIVED_UNKNOWN_PROTOCOL;
 	/* time overflow event */
     if (SET == TIM_GetITStatus(IR_CAP_HW_UNIT, TIM_IT_Update))
     {
         /* update timeline */
-        IR_TimelineUS += 0xFFFF;
+        IR_TimelineUS += 65535;
         if (IR_TimelineUS >= 500000)
         {
             EdgesCount = 0;
@@ -170,7 +161,6 @@ void TIM3_IRQHandler (void)
         /* Clear interrupt flag of timer overflow */
         TIM_ClearITPendingBit(IR_CAP_HW_UNIT, TIM_IT_Update);
     }
-    
     /* Input capture event */
     if (SET == TIM_GetITStatus(IR_CAP_HW_UNIT, TIM_IT_CC4))
     {
@@ -185,9 +175,14 @@ void TIM3_IRQHandler (void)
         /* check EdgesCount */
         if (EdgesCount == IR_FIRST_EDGE)
         {
+			temp++;
+			if (temp == 2)
+			{
+				temp = temp;
+			}
             /* First edge. indicate start of a frame */
             /* Checking repeated frame condition */
-            if (IR_TimelineUS < IR_Protocol_map[IR_Protocol].start_to_start_interval)
+            if (IR_TimelineUS < IR_SONY_START_TO_START_INTERVAL_US)
             {
                 /* Repeated frame */
                 IR_RepeatedFrame = true;
@@ -221,21 +216,45 @@ void TIM3_IRQHandler (void)
                     break;
                 }
             }
+			if ((i == (uint8_t)IR_PROTOCOL_NUM) && ir_callback){
+                /* Indicate unknown protocol */
+                IR_Protocol = IR_PROTOCOL_NUM;
+                /* Indicate error event */
+                Event = IR_EVENT_ERROR_RECEIVED_UNKNOWN_PROTOCOL;
+            }
         }
         else 
         {
             /* not first or second edge */
             if (IR_RepeatedFrame == false)
             {
-//                if (IrCallback != NULL)
-//                    /* call callback handler  */
-//                    IrCallback(Event, PulseLength, EdgesCount, IR_Protocol);
+                if (ir_callback != ((void*)0))
+                    /* call callback handler  */
+                    ir_callback(Event, PulseLength, EdgesCount, IR_Protocol);
+            }
+			if ((IR_Protocol == IR_PROTOCOL_SONY_SIRC)
+             && (EdgesCount == IR_FRAME_EDGES_NUMER_SONY_SIRC_PROTOCOL)){
+                /* Self reset edges counter */
+                EdgesCount = 0;
             }
         }
         /* Clear interrupt flag */
         TIM_ClearFlag(IR_CAP_HW_UNIT, TIM_FLAG_CC4);
-		TIM_ClearITPendingBit(IR_CAP_HW_UNIT, TIM_IT_CC4);
         /* Set the counter value to zero */
         TIM_SetCounter(IR_CAP_HW_UNIT, 0);
     }
+}
+
+void IR_EventHandle (ir_event_t xEvent, uint16_t xInterval, \
+                      uint8_t xEdgesCount, ir_protocol_t xIrProtocol)
+{
+	ir_decode_output_t pcOut;
+	ir_decode_intput_t pcIn;
+	pcIn.edges = xEdgesCount;
+	pcIn.interval = xInterval;
+	pcIn.protocol = xIrProtocol;
+	if (IR_Decode(&pcIn, &pcOut) == 0)
+	{
+		Led_Toggle(LED_A);
+	}
 }

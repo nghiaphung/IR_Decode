@@ -451,11 +451,6 @@
               <FilePath>.\driver\ir\ir.c</FilePath>
             </File>
             <File>
-              <FileName>lcd.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\driver\lcd\lcd.c</FilePath>
-            </File>
-            <File>
               <FileName>led.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\driver\led\led.c</FilePath>
@@ -469,6 +464,11 @@
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\main.c</FilePath>
+            </File>
+            <File>
+              <FileName>ir_decode.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\source\ir_decode.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -1,22 +1,16 @@
 /*******************************************************************************
- * @filename: ir_decoder.h
- * @Author  : fitz-nguyen
- * @Date    : Jun 26, 2017
- * @Email   : powerelectronics.vn@gmail.com
+ * @filename: 
+ * @Author	: nghiaphung
+ * @Date	: 
+ * @Email	: ducnghia318@gmail.com
  ******************************************************************************/
-#ifndef FRAMEWORK_IR_DECODER_H_
-#define FRAMEWORK_IR_DECODER_H_
-/*******************************************************************************
- *                               HISTORY
- *  July 7, 2017        1.0.1   fitz-nguyen : Initial revision
- ******************************************************************************/
+#ifndef IR_DECODE_H_
+#define IR_DECODE_H_
 
 /******************************************************************************/
 /*                               INCLUDE                                      */
 /******************************************************************************/
-#include "platform.h"
-#include "ir.h"
-#include "switch.h"
+#include "../../driver/ir/ir.h"
 /******************************************************************************/
 /*                             PUBLIC TYPEDEF                                 */
 /******************************************************************************/
@@ -52,37 +46,8 @@ typedef struct {
 /******************************************************************************/
 /**!                    PUBLIC FUNCTIONS PROTOTYPES                           */
 /******************************************************************************/
-/**
- * @brief to decode IR signal base on input information
- * @param pcIn
- * @param pxOut
- * @return
- *          EOK: finish a frame, decode OK, output is available.
- *          Others: error. Output is not valid.
- */
-//IMPORT int xIR_Decoder(ir_decode_intput_t pcIn, uint32_t* pxOut);
-IMPORT int xIR_Decoder(ir_decode_intput_t pcIn, ir_decode_output_t *xOut);
-
-/**
- * @brief Set IR button command for each switch
- * @param[in]   pSwitch_t: switch want to set code, pCmd: command code
- * @param[out]  none
- * @return      none
- * @details
- */
-
-IMPORT void xIR_SetButtonCmdCode(switch_channel_t pSwitch, uint8_t pValue);
-/**
- * @brief Get IR button command for each switch
- * @param[in]   pSwitch_t: switch want to get code
- * @param[out]  none
- * @return      command that controlling pSwitch_t
- * @details
- */
-IMPORT uint8_t xIR_GetButtonCmdCode(switch_channel_t pSwitch);
-#endif /* FRAMEWORK_IR_DECODER_H_ */
+int IR_Decode (ir_decode_intput_t *input, ir_decode_output_t *output);
+#endif 
 /******************************************************************************/
 /**!                           END OF FILE                                    */
-/******************************************************************************/
-/*                   All rights reserved © 2017 PE JSC                        */
 /******************************************************************************/

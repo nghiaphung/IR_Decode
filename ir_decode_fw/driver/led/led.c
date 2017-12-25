@@ -7,6 +7,8 @@
 /******************************************************************************/
 #include "led.h"
 #include "stm32f0xx.h"
+#include "stm32f0xx_gpio.h"
+#include "stm32f0xx_rcc.h"
 /******************************************************************************/
 /**!                            LOCAL TYPEDEF                                 */
 /******************************************************************************/
@@ -40,6 +42,7 @@
 /******************************************************************************/
 void Led_Init (void)
 {
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
 	/* User data configuration */
 	GPIO_InitTypeDef    GPIO_InitStruct;
 	GPIO_InitStruct.GPIO_Mode   = GPIO_Mode_OUT;
@@ -56,6 +59,9 @@ void Led_Init (void)
 	/* Initialize led C */
 	GPIO_InitStruct.GPIO_Pin    = LED_C_PIN;
 	GPIO_Init(LED_C_PORT, &GPIO_InitStruct);
+	Led_SetLevel(LED_A, LED_LEVEL_ENABLE);
+	Led_SetLevel(LED_B, LED_LEVEL_ENABLE);
+	Led_SetLevel(LED_C, LED_LEVEL_ENABLE);
 }
 
 void Led_SetLevel (led_channel_t pLed, led_level_t pLevel)
