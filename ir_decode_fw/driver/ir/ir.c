@@ -5,13 +5,13 @@
 /******************************************************************************/
 /**!                               INCLUDE                                    */
 /******************************************************************************/
-#include "ir.h"
 #include "stm32f0xx_gpio.h"
 #include "stm32f0xx_tim.h"
 #include "stm32f0xx_syscfg.h"
 #include "stm32f0xx_rcc.h"
 #include "stm32f0xx_misc.h"
 #include <stdbool.h>
+#include "ir.h"
 #include "../../source/ir_decode.h"
 #include "../led/led.h"
 /******************************************************************************/
@@ -25,37 +25,26 @@ typedef struct
 /******************************************************************************/
 /**!                            LOCAL SYMBOLS                                 */
 /******************************************************************************/
-#define IR_PORT                 GPIOB
-#define IR_PIN                  GPIO_Pin_1
-#define IR_AF_PIN_SRC           GPIO_PinSource1
-
-#define IR_CAP_HW_UNIT          TIM3
-#define IR_AF_FUNC              GPIO_AF_1
-#define IR_CAP_TIM_CH           TIM_Channel_4
-#define IR_CAP_IRQ_SRC          TIM_IT_CC4
-
 #define IR_SIGNAL_FREQ              1000000UL
 #define IR_SIGNAL_TOLERANCE_US      100UL
 
-
 #define IR_FRAME_EDGES_NUMER_SONY_SIRC_PROTOCOL      26
-
 #define IR_SONY_START_TO_START_INTERVAL_US           45000UL
 
-#define IR_FIRST_EDGE  1
-#define IR_SECOND_EDGE 2
+#define IR_FIRST_EDGE   1
+#define IR_SECOND_EDGE  2
 
-#define IR_START_BIT_ON_TIME_US_RC5                     ( 889UL  )
-#define IR_START_BIT_ON_TIME_US_RC6                     ( 2666UL )
-#define IR_START_BIT_ON_TIME_US_RC_MM                   ( 417UL  )
-#define IR_START_BIT_ON_TIME_US_SONY_SIRC_PROTOCOL      ( 2400UL )
-#define IR_START_BIT_ON_TIME_US_JVC_PROTOCOL            ( 9500UL )
-#define IR_START_BIT_ON_TIME_US_NEC_PROTOCOL            ( 9000UL )
-#define IR_START_BIT_ON_TIME_US_SHARP_PROTOCOL          ( 320UL  )
-#define IR_START_BIT_ON_TIME_US_MITSUBISHI_PROTOCOL     ( 8000UL )
-#define IR_START_BIT_ON_TIME_US_PANASONIC_PROTOCOL      ( 1728UL )
-#define IR_START_BIT_ON_TIME_US_RCA_PROTOCOL            ( 4000UL )
-#define IR_START_BIT_ON_TIME_US_NOKIA_NRC17_PROTOCOL    ( 500UL  )
+#define IR_START_BIT_ON_TIME_US_RC5                     889UL
+#define IR_START_BIT_ON_TIME_US_RC6                     2666UL
+#define IR_START_BIT_ON_TIME_US_RC_MM                   417UL
+#define IR_START_BIT_ON_TIME_US_SONY_SIRC_PROTOCOL      2400UL
+#define IR_START_BIT_ON_TIME_US_JVC_PROTOCOL            9500UL
+#define IR_START_BIT_ON_TIME_US_NEC_PROTOCOL            9000UL
+#define IR_START_BIT_ON_TIME_US_SHARP_PROTOCOL          320UL 
+#define IR_START_BIT_ON_TIME_US_MITSUBISHI_PROTOCOL     8000UL
+#define IR_START_BIT_ON_TIME_US_PANASONIC_PROTOCOL      1728UL
+#define IR_START_BIT_ON_TIME_US_RCA_PROTOCOL            4000UL
+#define IR_START_BIT_ON_TIME_US_NOKIA_NRC17_PROTOCOL    500UL
 /******************************************************************************/
 /**!                         EXPORTED VARIABLES                               */
 /******************************************************************************/
@@ -79,9 +68,10 @@ const ir_protocols_map_t IR_Protocol_map[IR_PROTOCOL_NUM] =
     {IR_START_BIT_ON_TIME_US_NOKIA_NRC17_PROTOCOL, IR_PROTOCOL_NOKIA_NRC17 }
 };
 
-
 ir_callback_t ir_callback;
 static ir_protocol_t IR_Protocol  = IR_PROTOCOL_RC5;
+static ir_decode_output_t IR_Output;
+bool isGetNewSignal = false;
 /******************************************************************************/
 /**!                    LOCAL FUNCTIONS PROTOTYPES                            */
 /******************************************************************************/
@@ -105,37 +95,49 @@ void IR_Init (void)
 	/* Calculate pre-scaler */
 	TIM_Prescaler =(uint16_t)(RCC_ClocksStatus.PCLK_Frequency/IR_CarryFreq) - 1;
 	/* Initializing GPIO */
-	GPIO_InitStruct.GPIO_Pin   = IR_PIN;
+	GPIO_InitStruct.GPIO_Pin   = GPIO_Pin_1;
     GPIO_InitStruct.GPIO_Mode  = GPIO_Mode_AF;
     GPIO_InitStruct.GPIO_Speed = GPIO_Speed_Level_2;
     GPIO_InitStruct.GPIO_PuPd  = GPIO_PuPd_UP;
     GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-    GPIO_Init(IR_PORT, &GPIO_InitStruct);
-    GPIO_PinAFConfig(IR_PORT, IR_AF_PIN_SRC, IR_AF_FUNC);
+    GPIO_Init(GPIOB, &GPIO_InitStruct);
+    GPIO_PinAFConfig(GPIOB, GPIO_PinSource1, GPIO_AF_1);
 	/* Initializing INPUT CAPTURE for indicated timer */
     TIM_TimeBaseInitStruct.TIM_CounterMode       = TIM_CounterMode_Up;
     TIM_TimeBaseInitStruct.TIM_Period            = 0xFFFF;
     TIM_TimeBaseInitStruct.TIM_Prescaler         = TIM_Prescaler;
     TIM_TimeBaseInitStruct.TIM_ClockDivision     = TIM_CKD_DIV1;
     TIM_TimeBaseInitStruct.TIM_RepetitionCounter = 0;
-    TIM_TimeBaseInit(IR_CAP_HW_UNIT, &TIM_TimeBaseInitStruct);
-    TIM_ITConfig(IR_CAP_HW_UNIT, TIM_IT_Update, ENABLE);
-    TIM_Cmd(IR_CAP_HW_UNIT, ENABLE);
+    TIM_TimeBaseInit(TIM3, &TIM_TimeBaseInitStruct);
+    TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);
+    TIM_Cmd(TIM3, ENABLE);
     /* Setting up IR event */
-    TIM_ICInitStruct.TIM_Channel     = IR_CAP_TIM_CH;
+    TIM_ICInitStruct.TIM_Channel     = TIM_Channel_4;
     TIM_ICInitStruct.TIM_ICFilter    = 0x00;
     TIM_ICInitStruct.TIM_ICPolarity  = TIM_ICPolarity_BothEdge;
     TIM_ICInitStruct.TIM_ICPrescaler = TIM_ICPSC_DIV1;
     TIM_ICInitStruct.TIM_ICSelection = TIM_ICSelection_DirectTI;
-    TIM_ICInit(IR_CAP_HW_UNIT, &TIM_ICInitStruct);
-    TIM_CCxCmd(IR_CAP_HW_UNIT, IR_CAP_TIM_CH, TIM_CCx_Enable);
-    TIM_ITConfig(IR_CAP_HW_UNIT, IR_CAP_IRQ_SRC, ENABLE);
+    TIM_ICInit(TIM3, &TIM_ICInitStruct);
+    TIM_CCxCmd(TIM3, TIM_Channel_4, TIM_CCx_Enable);
+    TIM_ITConfig(TIM3, TIM_IT_CC4, ENABLE);
     /* Enable NVIC */
     NVIC_InitStruct.NVIC_IRQChannel = TIM3_IRQn;
     NVIC_InitStruct.NVIC_IRQChannelPriority = 0;
     NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStruct);
 	ir_callback = IR_EventHandle;
+}
+
+bool IR_GetCmd(uint8_t* cmd)
+{
+	if (isGetNewSignal == true)
+		*cmd = IR_Output.cmd;
+	return isGetNewSignal;
+}
+
+void IR_ClearRecvFlag (void)
+{
+	isGetNewSignal = false;
 }
 /******************************************************************************/
 /**!                          LOCAL FUNCTIONS                                 */
@@ -149,7 +151,7 @@ void TIM3_IRQHandler (void)
     uint32_t PulseLength = 0;
     ir_event_t Event = IR_EVENT_ERROR_RECEIVED_UNKNOWN_PROTOCOL;
 	/* time overflow event */
-    if (SET == TIM_GetITStatus(IR_CAP_HW_UNIT, TIM_IT_Update))
+    if (SET == TIM_GetITStatus(TIM3, TIM_IT_Update))
     {
         /* update timeline */
         IR_TimelineUS += 65535;
@@ -159,15 +161,15 @@ void TIM3_IRQHandler (void)
             IR_TimelineUS = 0;
         }
         /* Clear interrupt flag of timer overflow */
-        TIM_ClearITPendingBit(IR_CAP_HW_UNIT, TIM_IT_Update);
+        TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
     }
     /* Input capture event */
-    if (SET == TIM_GetITStatus(IR_CAP_HW_UNIT, TIM_IT_CC4))
+    if (SET == TIM_GetITStatus(TIM3, TIM_IT_CC4))
     {
         /* Increase edges counter */
         EdgesCount++;
         /* Get timer counter */
-        PulseLength = (uint32_t)(TIM_GetCapture4(IR_CAP_HW_UNIT));
+        PulseLength = (uint32_t)(TIM_GetCapture4(TIM3));
         /* indicate event */
         Event = IR_EVENT_INPUT_SIGNAL;
         /* increase timeline */
@@ -239,22 +241,22 @@ void TIM3_IRQHandler (void)
             }
         }
         /* Clear interrupt flag */
-        TIM_ClearFlag(IR_CAP_HW_UNIT, TIM_FLAG_CC4);
+        TIM_ClearFlag(TIM3, TIM_FLAG_CC4);
         /* Set the counter value to zero */
-        TIM_SetCounter(IR_CAP_HW_UNIT, 0);
+        TIM_SetCounter(TIM3, 0);
     }
 }
 
-void IR_EventHandle (ir_event_t xEvent, uint16_t xInterval, \
+static void IR_EventHandle (ir_event_t xEvent, uint16_t xInterval, \
                       uint8_t xEdgesCount, ir_protocol_t xIrProtocol)
 {
-	ir_decode_output_t pcOut;
 	ir_decode_intput_t pcIn;
 	pcIn.edges = xEdgesCount;
 	pcIn.interval = xInterval;
 	pcIn.protocol = xIrProtocol;
-	if (IR_Decode(&pcIn, &pcOut) == 0)
+	if (IR_Decode(&pcIn, &IR_Output) == 0)
 	{
-		Led_Toggle(LED_A);
+		isGetNewSignal = true;
 	}
 }
+

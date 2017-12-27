@@ -16,13 +16,6 @@
 /******************************************************************************/
 /**!                            LOCAL SYMBOLS                                 */
 /******************************************************************************/
-#define LED_A_PORT      GPIOA
-#define LED_B_PORT      GPIOA
-#define LED_C_PORT      GPIOA
-#define LED_A_PIN       GPIO_Pin_7
-#define LED_B_PIN       GPIO_Pin_6
-#define LED_C_PIN       GPIO_Pin_5
-
 /* Symbol to convert active value */
 #define GPIO_ACTIVE_STAGE       1
 /******************************************************************************/
@@ -51,22 +44,18 @@ void Led_Init (void)
 	GPIO_InitStruct.GPIO_Speed  = GPIO_Speed_50MHz;
 
 		/* Initialize led A */
-	GPIO_InitStruct.GPIO_Pin    = LED_A_PIN;
-	GPIO_Init(LED_A_PORT, &GPIO_InitStruct);
+	GPIO_InitStruct.GPIO_Pin    = GPIO_Pin_7;
+	GPIO_Init(GPIOA, &GPIO_InitStruct);
 	/* Initialize led B */
-	GPIO_InitStruct.GPIO_Pin    = LED_B_PIN;
-	GPIO_Init(LED_B_PORT, &GPIO_InitStruct);
+	GPIO_InitStruct.GPIO_Pin    = GPIO_Pin_6;
+	GPIO_Init(GPIOA, &GPIO_InitStruct);
 	/* Initialize led C */
-	GPIO_InitStruct.GPIO_Pin    = LED_C_PIN;
-	GPIO_Init(LED_C_PORT, &GPIO_InitStruct);
-	Led_SetLevel(LED_A, LED_LEVEL_ENABLE);
-	Led_SetLevel(LED_B, LED_LEVEL_ENABLE);
-	Led_SetLevel(LED_C, LED_LEVEL_ENABLE);
+	GPIO_InitStruct.GPIO_Pin    = GPIO_Pin_5;
+	GPIO_Init(GPIOA, &GPIO_InitStruct);
 }
 
 void Led_SetLevel (led_channel_t pLed, led_level_t pLevel)
 {
-	/* Local variables */
     GPIO_TypeDef* GPIOx = ((void*)0);
     uint16_t   GPIO_Pin = 0;
     uint8_t xOutput = 0;
@@ -74,16 +63,16 @@ void Led_SetLevel (led_channel_t pLed, led_level_t pLevel)
 	switch (pLed)
     {
         case LED_A:
-            GPIOx   = LED_A_PORT;
-            GPIO_Pin = LED_A_PIN;
+            GPIOx   = GPIOA;
+            GPIO_Pin = GPIO_Pin_7;
             break;
         case LED_B:
-            GPIOx   = LED_B_PORT;
-            GPIO_Pin = LED_B_PIN;
+            GPIOx   = GPIOA;
+            GPIO_Pin = GPIO_Pin_6;
             break;
         case LED_C:
-            GPIOx   = LED_C_PORT;
-            GPIO_Pin = LED_C_PIN;
+            GPIOx   = GPIOA;
+            GPIO_Pin = GPIO_Pin_5;
             break;
 		default:
 			break;
@@ -99,7 +88,6 @@ void Led_SetLevel (led_channel_t pLed, led_level_t pLevel)
 
 void Led_Toggle (led_channel_t pLed)
 {
-	/* Local variables */
     GPIO_TypeDef* GPIOx = ((void*)0);
     uint16_t   GPIO_Pin = 0;
     uint8_t xOutput = 0;
@@ -107,16 +95,16 @@ void Led_Toggle (led_channel_t pLed)
 	switch (pLed)
     {
         case LED_A:
-            GPIOx    = LED_A_PORT;
-            GPIO_Pin = LED_A_PIN;
+            GPIOx    = GPIOA;
+            GPIO_Pin = GPIO_Pin_7;
             break;
         case LED_B:
-            GPIOx    = LED_B_PORT;
-            GPIO_Pin = LED_B_PIN;
+            GPIOx    = GPIOA;
+            GPIO_Pin = GPIO_Pin_6;
             break;
         case LED_C:
-            GPIOx    = LED_C_PORT;
-            GPIO_Pin = LED_C_PIN;
+            GPIOx    = GPIOA;
+            GPIO_Pin = GPIO_Pin_5;
             break;
 		default:
 			break;

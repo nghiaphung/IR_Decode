@@ -1,0 +1,9 @@
+D:\Project\IR_Decode\app\ir_decode_app\ir_decode_app\bin\Debug\ir_decode_app.exe.config
+D:\Project\IR_Decode\app\ir_decode_app\ir_decode_app\bin\Debug\ir_decode_app.exe
+D:\Project\IR_Decode\app\ir_decode_app\ir_decode_app\bin\Debug\ir_decode_app.pdb
+D:\Project\IR_Decode\app\ir_decode_app\ir_decode_app\obj\Debug\ir_decode_app.csprojResolveAssemblyReference.cache
+D:\Project\IR_Decode\app\ir_decode_app\ir_decode_app\obj\Debug\ir_decode_app.Form1.resources
+D:\Project\IR_Decode\app\ir_decode_app\ir_decode_app\obj\Debug\ir_decode_app.Properties.Resources.resources
+D:\Project\IR_Decode\app\ir_decode_app\ir_decode_app\obj\Debug\ir_decode_app.csproj.GenerateResource.Cache
+D:\Project\IR_Decode\app\ir_decode_app\ir_decode_app\obj\Debug\ir_decode_app.exe
+D:\Project\IR_Decode\app\ir_decode_app\ir_decode_app\obj\Debug\ir_decode_app.pdb

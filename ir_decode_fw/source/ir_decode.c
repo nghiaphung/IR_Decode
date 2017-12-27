@@ -1,10 +1,8 @@
 /*
  * @filename: ir_decode.c
  * @Author	: nghiaphung
- * @Date	: 18/11/2017
- * @Email	: ducnghia318@gmail.com
  */
- 
+
 /******************************************************************************/
 /**!                               INCLUDE                                    */
 /******************************************************************************/
@@ -86,5 +84,4 @@ uint32_t IR_SonyDecode(ir_decode_intput_t input, ir_decode_output_t* output, ir_
     }
     return 1;
 }
-
 

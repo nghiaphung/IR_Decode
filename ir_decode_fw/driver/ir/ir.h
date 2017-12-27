@@ -2,18 +2,18 @@
  * @filename: ir.h
  * @Author  : nghiaphung
  ******************************************************************************/
-#ifndef DRIVERS_IR_IR_H_
-#define DRIVERS_IR_IR_H_
+#ifndef IR_H_
+#define IR_H_
 /******************************************************************************/
 /*                               INCLUDE                                      */
 /******************************************************************************/
+#include <stdbool.h>
 #include <stdint.h>
 /******************************************************************************/
 /*                             PUBLIC TYPEDEF                                 */
 /******************************************************************************/
-
 /**
- * @brief Supported IR protocols
+ * @brief IR protocols
  */
 typedef enum
 {
@@ -30,6 +30,7 @@ typedef enum
     IR_PROTOCOL_NOKIA_NRC17     = 10,//!< IR_PROTOCOL_NOKIA_NRC17
     IR_PROTOCOL_NUM
 }ir_protocol_t;
+
 /**
  * @brief IR events
  */
@@ -39,6 +40,7 @@ typedef enum
     IR_EVENT_TIMER_OVERFLOW                  = 1,//!< IR_EVENT_TIMER_OVERFLOW
     IR_EVENT_ERROR_RECEIVED_UNKNOWN_PROTOCOL = 2,//!< IR_EVENT_ERROR_UNKNOWN_PROTOCOL
 }ir_event_t;
+
 /**
  * @brief IR callback handler
  * @param xEvent        : event
@@ -59,16 +61,13 @@ void (*ir_callback_t)(ir_event_t xEvent, uint16_t xInterval, \
 /******************************************************************************/
 
 /******************************************************************************/
-/**!                          INLINE FUNCTIONS                                */
-/******************************************************************************/
-
-/******************************************************************************/
 /**!                    PUBLIC FUNCTIONS PROTOTYPES                           */
 /******************************************************************************/
 void IR_Init (void);
-#endif /* DRIVERS_IR_IR_H_ */
+bool IR_GetCmd(uint8_t* cmd);
+void IR_ClearRecvFlag (void);
+#endif /* IR_H_ */
 /******************************************************************************/
 /**!                           END OF FILE                                    */
 /******************************************************************************/
-/*                   All rights reserved © 2017 PE JSC                        */
-/******************************************************************************/
+
