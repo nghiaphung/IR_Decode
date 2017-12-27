@@ -14,9 +14,9 @@
 /******************************************************************************/
 /**!                            LOCAL SYMBOLS                                 */
 /******************************************************************************/
-#define IR_SONY_PROTOCOL_LONG_INTERVAL                  ( 1200UL )
-#define IR_SONY_PROTOCOL_SHORT_INTERVAL                 ( 600UL  )
-#define IR_SIGNAL_TOLERANCE_US    100
+#define IR_SONY_PROTOCOL_LONG_INTERVAL                  1200UL
+#define IR_SONY_PROTOCOL_SHORT_INTERVAL                 600UL
+#define IR_SIGNAL_TOLERANCE_US                          100
 /******************************************************************************/
 /**!                         EXPORTED VARIABLES                               */
 /******************************************************************************/

@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\ir_decode_fw.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\ir_decode_fw.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060528: Last Updated: Tue Dec 26 13:20:19 2017
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060528: Last Updated: Thu Dec 28 00:03:43 2017
 <BR><P>
 <H3>Maximum Stack Usage =        152 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -504,7 +504,7 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f030.o(.text)
 </UL>
-<P><STRONG><a name="[18]"></a>TIM3_IRQHandler</STRONG> (Thumb, 334 bytes, Stack size 16 bytes, ir.o(i.TIM3_IRQHandler))
+<P><STRONG><a name="[18]"></a>TIM3_IRQHandler</STRONG> (Thumb, 306 bytes, Stack size 16 bytes, ir.o(i.TIM3_IRQHandler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 28<LI>Call Chain = TIM3_IRQHandler &rArr; TIM_GetITStatus
 </UL>
 <BR>[Calls]<UL><LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIM_SetCounter
@@ -637,7 +637,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[54]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Serial_SendByte
 </UL>
 
-<P><STRONG><a name="[32]"></a>main</STRONG> (Thumb, 234 bytes, Stack size 8 bytes, main.o(i.main))
+<P><STRONG><a name="[32]"></a>main</STRONG> (Thumb, 240 bytes, Stack size 8 bytes, main.o(i.main))
 <BR><BR>[Stack]<UL><LI>Max Depth = 152<LI>Call Chain = main &rArr; SetupHardware &rArr; Serial_Init &rArr; USART_Init &rArr; RCC_GetClocksFreq
 </UL>
 <BR>[Calls]<UL><LI><a href="#[57]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SetupHardware

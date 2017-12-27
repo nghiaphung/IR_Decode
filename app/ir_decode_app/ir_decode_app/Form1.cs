@@ -85,13 +85,13 @@ namespace ir_decode_app
                     tbCmd.Text = "Power";
                     break;
                 case 0x3F:
-                    tbCmd.Text = "Table";
+                    tbCmd.Text = "Menu";
                     break;
                 case 0x25:
-                    tbCmd.Text = "arrow";
+                    tbCmd.Text = "Video Mode";
                     break;
                 case 0x38:
-                    tbCmd.Text = "empty table";
+                    tbCmd.Text = "Menu off";
                     break;
                 case 0x00:
                     tbCmd.Text = "Digit 1";

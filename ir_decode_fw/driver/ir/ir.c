@@ -94,7 +94,7 @@ void IR_Init (void)
     RCC_GetClocksFreq(&RCC_ClocksStatus);
 	/* Calculate pre-scaler */
 	TIM_Prescaler =(uint16_t)(RCC_ClocksStatus.PCLK_Frequency/IR_CarryFreq) - 1;
-	/* Initializing GPIO */
+
 	GPIO_InitStruct.GPIO_Pin   = GPIO_Pin_1;
     GPIO_InitStruct.GPIO_Mode  = GPIO_Mode_AF;
     GPIO_InitStruct.GPIO_Speed = GPIO_Speed_Level_2;
@@ -102,7 +102,7 @@ void IR_Init (void)
     GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
     GPIO_Init(GPIOB, &GPIO_InitStruct);
     GPIO_PinAFConfig(GPIOB, GPIO_PinSource1, GPIO_AF_1);
-	/* Initializing INPUT CAPTURE for indicated timer */
+
     TIM_TimeBaseInitStruct.TIM_CounterMode       = TIM_CounterMode_Up;
     TIM_TimeBaseInitStruct.TIM_Period            = 0xFFFF;
     TIM_TimeBaseInitStruct.TIM_Prescaler         = TIM_Prescaler;
@@ -111,7 +111,7 @@ void IR_Init (void)
     TIM_TimeBaseInit(TIM3, &TIM_TimeBaseInitStruct);
     TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);
     TIM_Cmd(TIM3, ENABLE);
-    /* Setting up IR event */
+
     TIM_ICInitStruct.TIM_Channel     = TIM_Channel_4;
     TIM_ICInitStruct.TIM_ICFilter    = 0x00;
     TIM_ICInitStruct.TIM_ICPolarity  = TIM_ICPolarity_BothEdge;
@@ -120,7 +120,7 @@ void IR_Init (void)
     TIM_ICInit(TIM3, &TIM_ICInitStruct);
     TIM_CCxCmd(TIM3, TIM_Channel_4, TIM_CCx_Enable);
     TIM_ITConfig(TIM3, TIM_IT_CC4, ENABLE);
-    /* Enable NVIC */
+
     NVIC_InitStruct.NVIC_IRQChannel = TIM3_IRQn;
     NVIC_InitStruct.NVIC_IRQChannelPriority = 0;
     NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
@@ -177,11 +177,6 @@ void TIM3_IRQHandler (void)
         /* check EdgesCount */
         if (EdgesCount == IR_FIRST_EDGE)
         {
-			temp++;
-			if (temp == 2)
-			{
-				temp = temp;
-			}
             /* First edge. indicate start of a frame */
             /* Checking repeated frame condition */
             if (IR_TimelineUS < IR_SONY_START_TO_START_INTERVAL_US)
@@ -254,6 +249,7 @@ static void IR_EventHandle (ir_event_t xEvent, uint16_t xInterval, \
 	pcIn.edges = xEdgesCount;
 	pcIn.interval = xInterval;
 	pcIn.protocol = xIrProtocol;
+	/* call decode function */
 	if (IR_Decode(&pcIn, &IR_Output) == 0)
 	{
 		isGetNewSignal = true;

@@ -86,6 +86,7 @@ void USART1_IRQHandler(void)
 		if (byte == 'e')
 		{
 			gState = STATE_LEARNING;
+			/* Send 'e' ACK to app: start Learning IR */
 			Serial_SendByte('e');
 		}
 		USART_ClearFlag(USART1, USART_IT_RXNE);

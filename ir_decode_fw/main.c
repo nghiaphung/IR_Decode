@@ -80,6 +80,7 @@ int main (void)
 				Led_SetLevel(LED_C, LED_LEVEL_DISABLE);
 			
 				gState = STATE_CMD;
+				/* Send 'f' ACK to app: done learing IR */
 				Serial_SendByte('f');
 				break;	
 			default:
